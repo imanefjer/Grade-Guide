@@ -3,19 +3,29 @@
     <div class="messages-container" ref="messagesContainer">
       <div v-for="(message, index) in messages" :key="index" 
            :class="['message', message.role]">
-        <p>{{ message.content }}</p>
+        <TutorFormattedMessage :content="message.content" />
+         <!-- {{ message.content }} -->
+      </div>
+      <div v-if="isLoading" class="message assistant">
+        <p>Thinking...</p>
       </div>
     </div>
     
     <div class="input-container">
       <textarea 
+        ref="textareaRef"
         v-model="userInput"
         @keyup.enter.prevent="sendMessage"
         placeholder="Type your message here..."
         rows="3"
         class="message-input"
+        :disabled="isLoading"
       ></textarea>
-      <button @click="sendMessage" class="send-button">
+      <button 
+        @click="sendMessage" 
+        class="send-button"
+        :disabled="isLoading"
+      >
         Send
       </button>
     </div>
@@ -32,31 +42,53 @@ const messages = useState('messages', () => ([
 
 const userInput = ref('')
 const messagesContainer = ref(null)
+const textareaRef = ref(null)
+const isLoading = ref(false)
+
+const focusInput = () => {
+  if (textareaRef.value) {
+    textareaRef.value.focus()
+  }
+}
 
 const sendMessage = async () => {
-  if (!userInput.value.trim()) return
+  if (!userInput.value.trim() || isLoading.value) return
 
   // Add user message
-  messages.value.push({
+  const userMessage = {
     role: 'user',
     content: userInput.value.trim()
-  })
+  }
+  messages.value.push(userMessage)
 
   // Clear input
   userInput.value = ''
+  isLoading.value = true
 
-  // TODO: Add API call to OpenAI here
-  // For now, just add a mock response
-  messages.value.push({
-    role: 'assistant',
-    content: 'This is a placeholder response. OpenAI integration coming soon!'
-  })
+  try {
+    const response = await $fetch('/api/chat', {
+      method: 'POST',
+      body: {
+        messages: messages.value
+      }
+    })
 
-  // Scroll to bottom
+    messages.value.push(response)
+  } catch (error) {
+    console.error('Failed to get AI response:', error)
+    messages.value.push({
+      role: 'assistant',
+      content: 'I apologize, but I encountered an error. Please try again.'
+    })
+  } finally {
+    isLoading.value = false
+  }
+
   await nextTick()
   if (messagesContainer.value) {
     messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
   }
+  focusInput()
 }
 
 // Watch messages and scroll to bottom when new messages arrive
@@ -66,6 +98,11 @@ watch(() => messages.value, async () => {
     messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
   }
 }, { deep: true })
+
+// Add this to focus the input when component is mounted
+onMounted(() => {
+  focusInput()
+})
 </script>
 
 <style scoped>
