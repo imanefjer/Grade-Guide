@@ -24,13 +24,6 @@ export default defineEventHandler(async (event) => {
                 Provide clear, detailed explanations and encourage critical thinking. 
                 Break down complex concepts into simpler parts.
                 Use examples when appropriate to illustrate points.
-                For mathematical expressions, you must follow these exact formats:
-                1. For display math (equations on their own line):
-                   \\[ ... \\]
-                2. For inline math (within text):
-                   $ ... $
-                Never use \\( ... \\) format.
-                Always use $ ... $ for inline math.
                 If you're not sure about something, admit it and suggest alternatives.`
     })
 

@@ -18,6 +18,28 @@ const props = defineProps({
   }
 })
 
+// Add copy button to code blocks
+const addCopyButton = (html) => {
+  return html.replace(/<pre><code class="(.*?)">([\s\S]*?)<\/code><\/pre>/g, 
+    (match, language, code) => {
+      return `
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span class="code-language">${language}</span>
+            <button class="copy-button" onclick="copyCode(this)">
+              <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+          </div>
+          <pre><code class="${language}">${code}</code></pre>
+        </div>
+      `
+    }
+  )
+}
+
 // Configure marked for syntax highlighting
 marked.setOptions({
   highlight: function (code, lang) {
@@ -28,49 +50,73 @@ marked.setOptions({
   }
 })
 
-// Function to process LaTeX within HTML content
-const processLatex = (html) => {
-  if (typeof html !== 'string') return html
+// Function to process LaTeX within content
+const processLatex = (content) => {
+  if (typeof content !== 'string') return content
 
-  // Handle inline LaTeX (\(...\) or $...$)
-  html = html.replace(/\\\(([\s\S]+?)\\\)|\$([^\$]+?)\$/g, (_, parens, dollars) => {
-    try {
-      const tex = parens || dollars
-      return katex.renderToString(tex.trim(), {
-        displayMode: false,
-        throwOnError: false
-      })
-    } catch (e) {
-      console.error('LaTeX parsing error:', e)
-      return parens ? `\\(${parens}\\)` : `$${dollars}$`
-    }
-  })
-
-  // Handle display LaTeX (\[...\] or [...] if it's standalone)
-  html = html.replace(/\\\[([\s\S]+?)\\\]|\[(.+?)\]/g, (_, brackets, plainBrackets) => {
-    const tex = brackets || plainBrackets
+  // First handle display LaTeX (\[...\])
+  content = content.replace(/\\\[([\s\S]+?)\\\]/g, (match, tex) => {
     try {
       return katex.renderToString(tex.trim(), {
         displayMode: true,
         throwOnError: false
       })
     } catch (e) {
-      console.error('LaTeX parsing error:', e)
-      return brackets ? `\\[${brackets}\\]` : `[${plainBrackets}]`
+      console.error('Display LaTeX parsing error:', e)
+      return match
     }
   })
 
-  return html
+  // Then handle inline LaTeX (\(...\))
+  content = content.replace(/\\\(([\s\S]+?)\\\)/g, (match, tex) => {
+    try {
+      return katex.renderToString(tex.trim(), {
+        displayMode: false,
+        throwOnError: false
+      })
+    } catch (e) {
+      console.error('Inline LaTeX parsing error:', e)
+      return match
+    }
+  })
+
+  return content
 }
 
 // Compute formatted content
 const formattedContent = computed(() => {
   try {
-    const htmlContent = marked(props.content)
-    return processLatex(htmlContent)
+    // First process LaTeX in the raw content
+    let processedContent = processLatex(props.content)
+    // Then convert markdown to HTML
+    const htmlContent = marked(processedContent)
+    // Finally add copy buttons to code blocks
+    return addCopyButton(htmlContent)
   } catch (e) {
-    console.error('Markdown parsing error:', e)
+    console.error('Content processing error:', e)
     return props.content
+  }
+})
+
+// Add this script to the page
+onMounted(() => {
+  if (!window.copyCode) {
+    window.copyCode = (button) => {
+      const codeBlock = button.closest('.code-block-wrapper').querySelector('code')
+      const code = codeBlock.innerText
+      
+      navigator.clipboard.writeText(code).then(() => {
+        const originalHTML = button.innerHTML
+        button.innerHTML = `
+          <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        `
+        setTimeout(() => {
+          button.innerHTML = originalHTML
+        }, 2000)
+      })
+    }
   }
 })
 </script>
@@ -84,11 +130,9 @@ const formattedContent = computed(() => {
 }
 
 .formatted-message :deep(pre) {
-  background-color: #f7f7f9;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  margin: 1rem 0;
-  overflow-x: auto;
+  margin: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 .formatted-message :deep(code) {
@@ -126,11 +170,62 @@ const formattedContent = computed(() => {
 
 .formatted-message :deep(.katex-display) {
   margin: 1rem 0;
-  overflow-x: auto;
+  overflow-x: visible;
+  max-width: 100%;
+  font-size: 0.9rem;
 }
 
 .formatted-message :deep(.katex) {
   font-size: 1rem;
   line-height: 1.5;
+  white-space: normal;
+}
+
+.formatted-message :deep(.katex-html) {
+  max-width: 100%;
+  overflow-y: hidden;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+/* Add these new styles */
+.code-block-wrapper {
+  position: relative;
+  margin: 1rem 0;
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #2d2d2d;
+  padding: 0.5rem 1rem;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  color: #e1e1e1;
+}
+
+.code-language {
+  font-family: ui-monospace, monospace;
+  font-size: 0.875rem;
+  text-transform: lowercase;
+}
+
+.copy-button {
+  background: transparent;
+  border: none;
+  color: #e1e1e1;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+}
+
+.copy-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.copy-icon, .check-icon {
+  display: block;
 }
 </style>
