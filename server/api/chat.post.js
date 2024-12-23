@@ -1,46 +1,63 @@
-import { OpenAIClient, AzureKeyCredential } from '@azure/openai'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
-  
-  const client = new OpenAIClient(
-    config.AZURE_OPENAI_ENDPOINT,
-    new AzureKeyCredential(config.AZURE_OPENAI_API_KEY)
-  )
+  const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY)
+  const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
 
   try {
-    const { messages } = await readBody(event)
+    const { messages, subject } = await readBody(event)
 
-    // Format messages for Azure OpenAI
-    const formattedMessages = messages.map(msg => ({
-      role: msg.role,
-      content: msg.content
-    }))
-
-    // Add system message to set context as a tutor
-    formattedMessages.unshift({
-      role: 'system',
-      content: `You are a helpful and knowledgeable tutor. 
-                Provide clear, detailed explanations and encourage critical thinking. 
-                Break down complex concepts into simpler parts.
-                Use examples when appropriate to illustrate points.
-                If you're not sure about something, admit it and suggest alternatives.`
+    // Create a chat instance
+    const chat = model.startChat({
+      history: [],
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 2048,
+      },
+      safetySettings: [
+        {
+          category: 'HARM_CATEGORY_HARASSMENT',
+          threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+        },
+        {
+          category: 'HARM_CATEGORY_HATE_SPEECH',
+          threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+        },
+      ],
     })
 
-    const response = await client.getChatCompletions(
-      config.AZURE_OPENAI_DEPLOYMENT,
-      formattedMessages,
-      {
-        temperature: 0.7,
-        max_tokens: 800,
-        presence_penalty: 0.6,
-        frequency_penalty: 0.5
-      }
-    )
+    // System prompt
+    const systemPrompt = `You are an expert AI tutor specializing in ${subject}. Your role is to:
+- Provide clear, accurate, and detailed explanations
+- Break down complex concepts into simpler parts
+- Use examples to illustrate points when helpful
+- Encourage critical thinking through Socratic questioning
+- Provide step-by-step guidance when solving problems
+- Use LaTeX for mathematical expressions: inline with \\( \\) and display with \\[ \\]
+- Use markdown formatting for better readability
+- If you're unsure about something, admit it and suggest alternatives
+- Keep responses focused and relevant to the subject matter
+
+Remember to be patient, encouraging, and adapt your explanations to the student's level of understanding.`
+
+    // Add system prompt to chat history
+    await chat.sendMessage(systemPrompt)
+
+    // Process previous messages
+    for (let i = 0; i < messages.length - 1; i++) {
+      await chat.sendMessage(messages[i].content)
+    }
+
+    // Send the latest message and get response
+    const result = await chat.sendMessage(messages[messages.length - 1].content)
+    const response = await result.response
 
     return {
       role: 'assistant',
-      content: response.choices[0].message.content
+      content: response.text()
     }
   } catch (error) {
     console.error('Chat API Error:', error)
@@ -50,3 +67,5 @@ export default defineEventHandler(async (event) => {
     })
   }
 })
+
+// Implement logic to handle file uploads, and

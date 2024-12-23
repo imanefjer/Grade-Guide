@@ -1,5 +1,5 @@
 <template>
-  <div class="formatted-message" v-html="formattedContent"></div>
+  <div class="formatted-message prose prose-sm max-w-none" v-html="formattedContent"></div>
 </template>
 
 <script setup>
@@ -122,110 +122,49 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* General formatting */
-.formatted-message {
-  line-height: 1.6;
-  font-size: 1rem;
-  color: #333;
-}
-
 .formatted-message :deep(pre) {
-  margin: 0;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
+  @apply m-0 rounded-t-none bg-gray-800;
 }
 
 .formatted-message :deep(code) {
-  background-color: #f7f7f9;
-  padding: 0.2rem 0.4rem;
-  border-radius: 0.3rem;
-  font-family: ui-monospace, monospace;
+  @apply bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono text-gray-800;
+}
+
+.formatted-message :deep(pre code) {
+  @apply bg-transparent text-gray-100;
 }
 
 .formatted-message :deep(p) {
-  margin: 0.5rem 0;
+  @apply my-2 text-gray-800;
 }
 
 .formatted-message :deep(ul),
 .formatted-message :deep(ol) {
-  margin: 0.5rem 0;
-  padding-left: 1.5rem;
-}
-
-.formatted-message :deep(ul) {
-  list-style-type: disc;
-}
-
-.formatted-message :deep(ol) {
-  list-style-type: decimal;
+  @apply my-2 pl-6 text-gray-800;
 }
 
 .formatted-message :deep(blockquote) {
-  border-left: 4px solid #e2e8f0;
-  padding-left: 1rem;
-  margin: 1rem 0;
-  color: #4a5568;
-  background-color: #f9f9f9;
+  @apply border-l-4 border-gray-200 pl-4 my-4 text-gray-600 bg-gray-50 py-2 rounded-r;
 }
 
-.formatted-message :deep(.katex-display) {
-  margin: 1rem 0;
-  overflow-x: visible;
-  max-width: 100%;
-  font-size: 0.9rem;
-}
-
-.formatted-message :deep(.katex) {
-  font-size: 1rem;
-  line-height: 1.5;
-  white-space: normal;
-}
-
-.formatted-message :deep(.katex-html) {
-  max-width: 100%;
-  overflow-y: hidden;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
-}
-
-/* Add these new styles */
 .code-block-wrapper {
-  position: relative;
-  margin: 1rem 0;
+  @apply relative my-4 rounded-xl overflow-hidden shadow-sm;
 }
 
 .code-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #2d2d2d;
-  padding: 0.5rem 1rem;
-  border-top-left-radius: 0.5rem;
-  border-top-right-radius: 0.5rem;
-  color: #e1e1e1;
+  @apply flex justify-between items-center bg-gray-800 px-4 py-2;
 }
 
 .code-language {
-  font-family: ui-monospace, monospace;
-  font-size: 0.875rem;
-  text-transform: lowercase;
+  @apply font-mono text-sm text-gray-300 lowercase;
 }
 
 .copy-button {
-  background: transparent;
-  border: none;
-  color: #e1e1e1;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 0.25rem;
-  transition: all 0.2s;
+  @apply p-1.5 text-gray-300 hover:bg-gray-700 rounded-lg transition-colors;
 }
 
-.copy-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.copy-icon, .check-icon {
-  display: block;
+.copy-icon,
+.check-icon {
+  @apply w-4 h-4;
 }
 </style>

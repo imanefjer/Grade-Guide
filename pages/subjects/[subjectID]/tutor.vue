@@ -1,6 +1,11 @@
 <template>
-  <div class="tutor-container">
-    <h1 class="text-2xl font-bold mb-6">AI Tutor - {{ subject }}</h1>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">
+      <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+        AI Tutor
+      </span>
+      <span class="text-gray-900"> - {{ subject }}</span>
+    </h1>
     <TutorChatInterface />
   </div>
 </template>
