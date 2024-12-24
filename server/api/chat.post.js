@@ -1,71 +1,83 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { H3Error } from 'h3';
+import { promises as fs } from 'fs';
+import { readFiles } from 'h3-formidable';
+
+const config = useRuntimeConfig();
+const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
+
+async function fileToGenerativePart(file) {
+  const data = await fs.readFile(file.filepath);
+  return {
+    inlineData: {
+      data: Buffer.from(data).toString('base64'),
+      mimeType: file.mimetype
+    }
+  };
+}
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
-  const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY)
-  const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
+    try {
+        const { fields, files } = await readFiles(event, {
+            includeFields: true,
+        });
 
-  try {
-    const { messages, subject } = await readBody(event)
+        const message = fields.message?.[0];
+        const messages = JSON.parse(fields.messages?.[0] || '[]');
+        const subject = fields.subject?.[0];
 
-    // Create a chat instance
-    const chat = model.startChat({
-      history: [],
-      generationConfig: {
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 2048,
-      },
-      safetySettings: [
-        {
-          category: 'HARM_CATEGORY_HARASSMENT',
-          threshold: 'BLOCK_MEDIUM_AND_ABOVE',
-        },
-        {
-          category: 'HARM_CATEGORY_HATE_SPEECH',
-          threshold: 'BLOCK_MEDIUM_AND_ABOVE',
-        },
-      ],
-    })
+        if (!message && (!files.files || files.files.length === 0)) {
+            throw new H3Error("No message or files provided in form data.");
+        }
 
-    // System prompt
-    const systemPrompt = `You are an expert AI tutor specializing in ${subject}. Your role is to:
-- Provide clear, accurate, and detailed explanations
-- Break down complex concepts into simpler parts
-- Use examples to illustrate points when helpful
-- Encourage critical thinking through Socratic questioning
-- Provide step-by-step guidance when solving problems
-- Use LaTeX for mathematical expressions: inline with \\( \\) and display with \\[ \\]
-- Use markdown formatting for better readability
-- If you're unsure about something, admit it and suggest alternatives
-- Keep responses focused and relevant to the subject matter
+        const model = genAI.getGenerativeModel({ 
+            model: 'gemini-1.5-pro-latest',
+            systemInstruction: 'You are an AI tutor specialized in helping students understand and learn academic subjects. Provide clear explanations, examples, and support to make complex topics easier to grasp.'  
+        });
 
-Remember to be patient, encouraging, and adapt your explanations to the student's level of understanding.`
+        const initialMessage = [
+            {
+                role: 'user',
+                parts: [{ text: 'Hello' }]
+            },
+            {
+                role: 'model',
+                parts: [{ text: 'Hello! I\'m your AI tutor. How can I help you today?' }]
+            },
+            ...messages.map(msg => ({
+                role: msg.role === 'model' ? 'model' : 'user',
+                parts: [{ text: msg.content }]
+            }))
+        ];
 
-    // Add system prompt to chat history
-    await chat.sendMessage(systemPrompt)
+        const parts = [];
+        
+        // Add text message if present
+        if (message) {
+            parts.push({ text: message });
+        }
 
-    // Process previous messages
-    for (let i = 0; i < messages.length - 1; i++) {
-      await chat.sendMessage(messages[i].content)
+        // Process files if they exist
+        if (files.files) {
+            for (const file of files.files) {
+                const generativePart = await fileToGenerativePart(file);
+                parts.push(generativePart);
+            }
+        }
+
+        const chat = model.startChat({ history: initialMessage });
+        const result = await chat.sendMessage(parts);
+        const response = await result.response;
+
+        return {
+            role: 'model',
+            content: response.text()
+        };
+    } catch (error) {
+        console.error('Error processing Gemini request:', error);
+        throw createError({
+            statusCode: 500,
+            statusMessage: 'Failed to get AI response',
+        });
     }
-
-    // Send the latest message and get response
-    const result = await chat.sendMessage(messages[messages.length - 1].content)
-    const response = await result.response
-
-    return {
-      role: 'assistant',
-      content: response.text()
-    }
-  } catch (error) {
-    console.error('Chat API Error:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to get response from AI tutor'
-    })
-  }
-})
-
-// Implement logic to handle file uploads, and
+});
