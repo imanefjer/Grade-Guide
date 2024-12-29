@@ -19,6 +19,18 @@
             >
               Subjects
             </NuxtLink>
+            <NuxtLink 
+              to="/leaderboard" 
+              class="text-gray-600 hover:text-gray-900"
+            >
+              Leaderboard
+            </NuxtLink> 
+            <NuxtLink 
+              to="/dashboard" 
+              class="text-gray-600 hover:text-gray-900"
+            >
+              Dashboard
+            </NuxtLink>
             <!-- Add more navigation links as needed -->
           </div>
 
