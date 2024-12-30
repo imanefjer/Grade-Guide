@@ -29,4 +29,11 @@ export default defineNuxtConfig({
   modules: [
     '@pinia/nuxt',
   ],
+  plugins: [
+    '~/plugins/firebase.js',
+    '~/plugins/auth.js'
+  ],
+  router: {
+    middleware: ['auth']
+  }
 })

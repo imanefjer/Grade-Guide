@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import { auth } from '~/plugins/firebase'
 import { 
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -16,16 +15,19 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     async init() {
-      onAuthStateChanged(auth, (user) => {
+      const { $auth } = useNuxtApp()
+      
+      onAuthStateChanged($auth, (user) => {
         this.user = user
         this.loading = false
       })
     },
 
     async signup(email, password) {
+      const { $auth } = useNuxtApp()
       try {
         this.error = null
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+        const userCredential = await createUserWithEmailAndPassword($auth, email, password)
         this.user = userCredential.user
         return userCredential
       } catch (error) {
@@ -35,9 +37,10 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async login(email, password) {
+      const { $auth } = useNuxtApp()
       try {
         this.error = null
-        const userCredential = await signInWithEmailAndPassword(auth, email, password)
+        const userCredential = await signInWithEmailAndPassword($auth, email, password)
         this.user = userCredential.user
         return userCredential
       } catch (error) {
@@ -47,8 +50,9 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async logout() {
+      const { $auth } = useNuxtApp()
       try {
-        await signOut(auth)
+        await signOut($auth)
         this.user = null
       } catch (error) {
         this.error = error.message
