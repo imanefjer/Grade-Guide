@@ -36,14 +36,20 @@
           <!-- Right side - User Menu -->
           <div class="flex items-center">
             <template v-if="auth.isAuthenticated">
-              <div class="relative group">
-                <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
+              <div class="relative">
+                <button 
+                  @click="isMenuOpen = !isMenuOpen"
+                  class="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+                >
                   <span>{{ auth.userEmail }}</span>
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                   </svg>
                 </button>
-                <div class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden group-hover:block">
+                <div 
+                  v-show="isMenuOpen"
+                  class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+                >
                   <div class="py-1">
                     <button
                       @click="handleLogout"
@@ -87,13 +93,26 @@
 <script setup>
 import { useAuthStore } from '~/stores/authStore'
 import { useRouter } from 'vue-router'
+import { ref } from 'vue'
 
 const auth = useAuthStore()
 const router = useRouter()
+const isMenuOpen = ref(false)
+
+// Add click outside handler to close menu
+onMounted(() => {
+  document.addEventListener('click', (e) => {
+    const menu = document.querySelector('.relative')
+    if (menu && !menu.contains(e.target)) {
+      isMenuOpen.value = false
+    }
+  })
+})
 
 const handleLogout = async () => {
   try {
     await auth.logout()
+    isMenuOpen.value = false
     router.push('/auth/login')
   } catch (error) {
     console.error('Logout error:', error)
