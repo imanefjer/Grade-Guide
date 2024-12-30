@@ -1,52 +1,83 @@
-import { OpenAIClient, AzureKeyCredential } from '@azure/openai'
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { H3Error } from 'h3';
+import { promises as fs } from 'fs';
+import { readFiles } from 'h3-formidable';
+
+const config = useRuntimeConfig();
+const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
+
+async function fileToGenerativePart(file) {
+  const data = await fs.readFile(file.filepath);
+  return {
+    inlineData: {
+      data: Buffer.from(data).toString('base64'),
+      mimeType: file.mimetype
+    }
+  };
+}
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
-  
-  const client = new OpenAIClient(
-    config.AZURE_OPENAI_ENDPOINT,
-    new AzureKeyCredential(config.AZURE_OPENAI_API_KEY)
-  )
+    try {
+        const { fields, files } = await readFiles(event, {
+            includeFields: true,
+        });
 
-  try {
-    const { messages } = await readBody(event)
+        const message = fields.message?.[0];
+        const messages = JSON.parse(fields.messages?.[0] || '[]');
+        const subject = fields.subject?.[0];
 
-    // Format messages for Azure OpenAI
-    const formattedMessages = messages.map(msg => ({
-      role: msg.role,
-      content: msg.content
-    }))
+        if (!message && (!files.files || files.files.length === 0)) {
+            throw new H3Error("No message or files provided in form data.");
+        }
 
-    // Add system message to set context as a tutor
-    formattedMessages.unshift({
-      role: 'system',
-      content: `You are a helpful and knowledgeable tutor. 
-                Provide clear, detailed explanations and encourage critical thinking. 
-                Break down complex concepts into simpler parts.
-                Use examples when appropriate to illustrate points.
-                If you're not sure about something, admit it and suggest alternatives.`
-    })
+        const model = genAI.getGenerativeModel({ 
+            model: 'gemini-1.5-pro-latest',
+            systemInstruction: 'You are an AI tutor specialized in helping students understand and learn academic subjects. Provide clear explanations, examples, and support to make complex topics easier to grasp.'  
+        });
 
-    const response = await client.getChatCompletions(
-      config.AZURE_OPENAI_DEPLOYMENT,
-      formattedMessages,
-      {
-        temperature: 0.7,
-        max_tokens: 800,
-        presence_penalty: 0.6,
-        frequency_penalty: 0.5
-      }
-    )
+        const initialMessage = [
+            {
+                role: 'user',
+                parts: [{ text: 'Hello' }]
+            },
+            {
+                role: 'model',
+                parts: [{ text: 'Hello! I\'m your AI tutor. How can I help you today?' }]
+            },
+            ...messages.map(msg => ({
+                role: msg.role === 'model' ? 'model' : 'user',
+                parts: [{ text: msg.content }]
+            }))
+        ];
 
-    return {
-      role: 'assistant',
-      content: response.choices[0].message.content
+        const parts = [];
+        
+        // Add text message if present
+        if (message) {
+            parts.push({ text: message });
+        }
+
+        // Process files if they exist
+        if (files.files) {
+            for (const file of files.files) {
+                const generativePart = await fileToGenerativePart(file);
+                parts.push(generativePart);
+            }
+        }
+
+        const chat = model.startChat({ history: initialMessage });
+        const result = await chat.sendMessage(parts);
+        const response = await result.response;
+
+        return {
+            role: 'model',
+            content: response.text()
+        };
+    } catch (error) {
+        console.error('Error processing Gemini request:', error);
+        throw createError({
+            statusCode: 500,
+            statusMessage: 'Failed to get AI response',
+        });
     }
-  } catch (error) {
-    console.error('Chat API Error:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Failed to get response from AI tutor'
-    })
-  }
-})
+});

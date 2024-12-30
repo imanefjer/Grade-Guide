@@ -1,6 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
+  modules: ['@pinia/nuxt'],
   devtools: { enabled: true },
   css: [
     '~/assets/css/main.css',
@@ -14,9 +15,7 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
-    AZURE_OPENAI_API_KEY: process.env.AZURE_OPENAI_API_KEY,
-    AZURE_OPENAI_ENDPOINT: process.env.AZURE_OPENAI_ENDPOINT,
-    AZURE_OPENAI_DEPLOYMENT: process.env.AZURE_OPENAI_DEPLOYMENT,
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     public: {
       FIREBASE_API_KEY: process.env.FIREBASE_API_KEY,
       FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN,
@@ -26,9 +25,6 @@ export default defineNuxtConfig({
       FIREBASE_APP_ID: process.env.FIREBASE_APP_ID
     }
   },
-  modules: [
-    '@pinia/nuxt',
-  ],
   plugins: [
     '~/plugins/firebase.js',
     '~/plugins/auth.js'

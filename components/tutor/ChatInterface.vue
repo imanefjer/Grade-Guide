@@ -1,84 +1,109 @@
 <template>
-  <div class="chat-container">
-    <div class="messages-container" ref="messagesContainer">
-      <div v-for="(message, index) in messages" :key="index" 
-           :class="['message', message.role]">
-        <TutorFormattedMessage :content="message.content" />
-         <!-- {{ message.content }} -->
+  <div class="flex flex-col bg-white rounded-2xl shadow-lg border border-gray-200">
+    <!-- Header -->
+    <div class="flex justify-between items-center px-8 py-6 border-b border-gray-200">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-xl font-semibold text-gray-800">Study Session</h2>
+          <p class="text-sm text-gray-500">Ask anything about your subject</p>
+        </div>
       </div>
-      <div v-if="isLoading" class="message assistant">
-        <p class="thinking font-bold">
-          <span>T</span>
-          <span>h</span>
-          <span>i</span>
-          <span>n</span>
-          <span>k</span>
-          <span>i</span>
-          <span>n</span>
-          <span>g</span>
-          <span>.</span>
-          <span>.</span>
-          <span>.</span>
-        </p>
+      <button 
+        @click="clearChat" 
+        class="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+        Clear Chat
+      </button>
+    </div>
+
+    <!-- Messages Container -->
+    <div ref="messagesContainer" class="px-8 py-6 space-y-8">
+      <div v-for="(message, index) in messages" 
+           :key="index" 
+           :class="[
+             'max-w-3xl mx-auto',
+             message.role === 'user' ? 'ml-auto' : ''
+           ]"
+      >
+        <div class="flex items-start gap-6">
+          <div v-if="message.role !== 'user'" class="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
+            <span class="text-white font-semibold text-lg">AI</span>
+          </div>
+          <div :class="[
+            'rounded-2xl px-8 py-6 shadow-sm max-w-[85%]',
+            message.role === 'user' 
+              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white ml-auto' 
+              : 'bg-white text-gray-800 border border-gray-100'
+          ]">
+            <TutorFormattedMessage :content="message.content" />
+          </div>
+          <div v-if="message.role === 'user'" class="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
+            <span class="text-white font-semibold text-lg">U</span>
+          </div>
+        </div>
       </div>
     </div>
     
-    <div class="input-container">
-      <div class="flex items-center gap-2">
-        <label for="file-upload" class="file-upload-button">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-          <input 
-            id="file-upload"
-            type="file"
-            @change="handleFileUpload"
-            accept=".pdf,.png,.jpg,.jpeg"
-            class="hidden"
-            :disabled="isLoading"
+    <!-- Input Area (removed sticky positioning) -->
+    <div class="border-t border-gray-200 p-8 bg-gray-50 rounded-b-2xl">
+      <div class="max-w-4xl mx-auto">
+        <div class="flex flex-col gap-4">
+          <TutorFileUpload
+            :is-loading="isLoading"
+            :clear-files="shouldClearFiles"
+            @files-selected="handleFiles"
+            @files-cleared="clearFiles"
           />
-        </label>
-        <textarea 
-          ref="textareaRef"
-          v-model="userInput"
-          @keydown.enter.exact.prevent="sendMessage"
-          @keydown.shift.enter.prevent="newLine"
-          placeholder="Type your message here..."
-          rows="3"
-          class="message-input"
-          :disabled="isLoading"
-        ></textarea>
-        <button 
-          @click="sendMessage" 
-          class="send-button"
-          :disabled="isLoading"
-        >
-          Send
-        </button>
-      </div>
-      <div v-if="selectedFile" class="selected-file">
-        <span>{{ selectedFile.name }}</span>
-        <button @click="removeFile" class="remove-file">×</button>
+          <div class="flex gap-4">
+            <textarea 
+              ref="textareaRef"
+              v-model="userInput"
+              @keydown.enter.exact.prevent="sendMessage"
+              @keydown.shift.enter.prevent="newLine"
+              placeholder="Type your message here... (Enter to send, Shift+Enter for new line)"
+              rows="3"
+              class="flex-1 resize-none rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all p-4 text-base shadow-sm"
+              :disabled="isLoading"
+            ></textarea>
+            <button 
+              @click="sendMessage" 
+              class="self-end px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-xl transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              :disabled="isLoading"
+            >
+              <span>Send</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-const messages = useState('messages', () => ([
-  {
-    role: 'assistant',
-    content: 'Hello! I\'m your AI tutor. How can I help you today?'
-  }
-]))
+const messages = ref([{
+  role: 'model',
+  content: 'Hello! I\'m your AI tutor. How can I help you today?'
+}])
+
+const route = useRoute()
 
 const userInput = ref('')
 const messagesContainer = ref(null)
 const textareaRef = ref(null)
 const isLoading = ref(false)
-const selectedFile = ref(null)
+const selectedFiles = ref([])
+const shouldClearFiles = ref(false)
 
 const focusInput = () => {
   if (textareaRef.value) {
@@ -86,60 +111,41 @@ const focusInput = () => {
   }
 }
 
-const handleFileUpload = (event) => {
-  const file = event.target.files[0]
-  if (file) {
-    selectedFile.value = file
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
-      alert('File size should not exceed 5MB')
-      removeFile()
-      return
-    }
-  }
-}
-
-const removeFile = () => {
-  selectedFile.value = null
-  const fileInput = document.getElementById('file-upload')
-  if (fileInput) fileInput.value = ''
-}
-
 const sendMessage = async () => {
-  if ((!userInput.value.trim() && !selectedFile.value) || isLoading.value) return
+  if (!userInput.value.trim() && selectedFiles.value.length === 0 || isLoading.value) return
 
   isLoading.value = true
 
   try {
-    let content = userInput.value.trim()
-    let formData = null
-
-    if (selectedFile.value) {
-      formData = new FormData()
-      formData.append('file', selectedFile.value)
-      content += `\n[Attached file: ${selectedFile.value.name}]`
-    }
+    const formData = new FormData()
+    formData.append('message', userInput.value.trim())
+    formData.append('messages', JSON.stringify(messages.value))
+    selectedFiles.value.forEach(file => {
+      formData.append('files', file)
+    })
+    formData.append('subject', route.params.subjectID)
 
     const userMessage = {
       role: 'user',
-      content: content
+      content: userInput.value.trim()
     }
     messages.value.push(userMessage)
 
-    userInput.value = ''
-    removeFile()
-
     const response = await $fetch('/api/chat', {
       method: 'POST',
-      body: formData || {
-        messages: messages.value
-      }
+      body: formData
     })
 
     messages.value.push(response)
+    userInput.value = ''
+    selectedFiles.value = []
+    shouldClearFiles.value = true
+    await nextTick()
+    shouldClearFiles.value = false
   } catch (error) {
     console.error('Failed to get AI response:', error)
     messages.value.push({
-      role: 'assistant',
+      role: 'model',
       content: 'I apologize, but I encountered an error. Please try again.'
     })
   } finally {
@@ -147,133 +153,34 @@ const sendMessage = async () => {
   }
 
   await nextTick()
-  if (messagesContainer.value) {
-    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
-  }
   focusInput()
 }
-
-watch(() => messages.value, async () => {
-  await nextTick()
-  if (messagesContainer.value) {
-    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
-  }
-}, { deep: true })
-
-onMounted(() => {
-  focusInput()
-})
 
 const newLine = () => {
   userInput.value += '\n'
 }
+
+const handleFiles = (files) => {
+  selectedFiles.value = files
+}
+
+const clearFiles = () => {
+  selectedFiles.value = []
+}
+
+const clearChat = () => {
+  messages.value = [{
+    role: 'model',
+    content: 'Hello! I\'m your AI tutor. How can I help you today?'
+  }]
+}
+
+onMounted(() => {
+  focusInput()
+})
 </script>
 
 <style scoped>
-.chat-container {
-  display: flex;
-  flex-direction: column;
-  height: 70vh;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  background-color: white;
-}
-
-.messages-container {
-  flex-grow: 1;
-  overflow-y: auto;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.message {
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  max-width: 80%;
-}
-
-.message.user {
-  background-color: #e2e8f0;
-  align-self: flex-end;
-}
-
-.message.assistant {
-  background-color: #f1f5f9;
-  align-self: flex-start;
-}
-
-.input-container {
-  border-top: 1px solid #e2e8f0;
-  padding: 1rem;
-  display: flex;
-  gap: 1rem;
-}
-
-.message-input {
-  flex-grow: 1;
-  padding: 0.5rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.375rem;
-  resize: none;
-}
-
-.send-button {
-  padding: 0.5rem 1rem;
-  background-color: #3b82f6;
-  color: white;
-  border-radius: 0.375rem;
-  font-weight: 500;
-}
-
-.send-button:hover {
-  background-color: #2563eb;
-}
-
-.file-upload-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  background-color: #f3f4f6;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.file-upload-button:hover {
-  background-color: #e5e7eb;
-}
-
-.selected-file {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  padding: 0.25rem 0.5rem;
-  background-color: #f3f4f6;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-}
-
-.remove-file {
-  padding: 0 0.25rem;
-  color: #6b7280;
-  font-size: 1.25rem;
-  line-height: 1;
-}
-
-.remove-file:hover {
-  color: #ef4444;
-}
-
-.thinking {
-  display: flex;
-  justify-content: flex-start;
-  gap: 1px;
-}
-
 .thinking span {
   animation: colorChange 2s infinite;
   display: inline-block;
