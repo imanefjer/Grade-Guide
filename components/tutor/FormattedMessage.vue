@@ -1,14 +1,10 @@
 <template>
-  <div class="formatted-message prose prose-sm max-w-none" v-html="formattedContent"></div>
+  <div class="formatted-message prose prose-sm max-w-none" v-html="renderedContent"></div>
 </template>
 
 <script setup>
-import { marked } from 'marked'
-import katex from 'katex'
+import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
-
-// Import styles for Katex and Highlight.js (ensure they are included in your project)
-import 'katex/dist/katex.min.css'
 import 'highlight.js/styles/github.css'
 
 const props = defineProps({
@@ -18,153 +14,227 @@ const props = defineProps({
   }
 })
 
-// Add copy button to code blocks
-const addCopyButton = (html) => {
-  return html.replace(/<pre><code class="(.*?)">([\s\S]*?)<\/code><\/pre>/g, 
-    (match, language, code) => {
-      return `
-        <div class="code-block-wrapper">
+const md = new MarkdownIt({
+  html: false,
+  breaks: true,
+  linkify: true,
+  typographer: true,
+  highlight: (str, lang) => {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return `<div class="code-block-wrapper group">
           <div class="code-header">
-            <span class="code-language">${language}</span>
-            <button class="copy-button" onclick="copyCode(this)">
-              <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            <span class="language-label">${lang}</span>
+            <button class="copy-button" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.querySelector('code').textContent)">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
+              <span class="ml-1">Copy</span>
             </button>
           </div>
-          <pre><code class="${language}">${code}</code></pre>
-        </div>
-      `
+          <pre class="code-block !m-0 !p-0"><code class="hljs language-${lang}">${hljs.highlight(str, { language: lang }).value}</code></pre>
+        </div>`
+      } catch (__) {}
     }
-  )
-}
-
-// Configure marked for syntax highlighting
-marked.setOptions({
-  highlight: function (code, lang) {
-    if (lang && hljs.getLanguage(lang)) {
-      return hljs.highlight(code, { language: lang }).value
-    }
-    return hljs.highlightAuto(code).value
+    return `<pre class="code-block !m-0 !p-0"><code class="hljs">${md.utils.escapeHtml(str)}</code></pre>`
   }
 })
 
-// Function to process LaTeX within content
-const processLatex = (content) => {
-  if (typeof content !== 'string') return content
+const renderedContent = computed(() => {
+  // Clean up the content by removing line numbers and fixing code blocks
+  let cleanContent = props.content
+    .replace(/^\d+\|/gm, '') // Remove line numbers
+    .replace(/```(\w+):\S+\s/g, '```$1\n') // Clean file paths in code blocks
+    .replace(/startLine: \d+\s*endLine: \d+/g, '') // Remove start/end line markers
 
-  // First handle display LaTeX (\[...\])
-  content = content.replace(/\\\[([\s\S]+?)\\\]/g, (match, tex) => {
-    try {
-      return katex.renderToString(tex.trim(), {
-        displayMode: true,
-        throwOnError: false
-      })
-    } catch (e) {
-      console.error('Display LaTeX parsing error:', e)
-      return match
-    }
-  })
-
-  // Then handle inline LaTeX (\(...\))
-  content = content.replace(/\\\(([\s\S]+?)\\\)/g, (match, tex) => {
-    try {
-      return katex.renderToString(tex.trim(), {
-        displayMode: false,
-        throwOnError: false
-      })
-    } catch (e) {
-      console.error('Inline LaTeX parsing error:', e)
-      return match
-    }
-  })
-
-  return content
-}
-
-// Compute formatted content
-const formattedContent = computed(() => {
-  try {
-    // First process LaTeX in the raw content
-    let processedContent = processLatex(props.content)
-    // Then convert markdown to HTML
-    const htmlContent = marked(processedContent)
-    // Finally add copy buttons to code blocks
-    return addCopyButton(htmlContent)
-  } catch (e) {
-    console.error('Content processing error:', e)
-    return props.content
-  }
-})
-
-// Add this script to the page
-onMounted(() => {
-  if (!window.copyCode) {
-    window.copyCode = (button) => {
-      const codeBlock = button.closest('.code-block-wrapper').querySelector('code')
-      const code = codeBlock.innerText
-      
-      navigator.clipboard.writeText(code).then(() => {
-        const originalHTML = button.innerHTML
-        button.innerHTML = `
-          <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-        `
-        setTimeout(() => {
-          button.innerHTML = originalHTML
-        }, 2000)
-      })
-    }
-  }
+  return md.render(cleanContent)
 })
 </script>
 
-<style scoped>
-.formatted-message :deep(pre) {
-  @apply m-0 rounded-t-none bg-gray-800;
+<style>
+.formatted-message {
+  @apply leading-relaxed space-y-4;
 }
 
-.formatted-message :deep(code) {
-  @apply bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono text-gray-800;
+.formatted-message h1,
+.formatted-message h2,
+.formatted-message h3,
+.formatted-message h4,
+.formatted-message h5,
+.formatted-message h6 {
+  @apply font-semibold text-gray-900 mt-8 mb-4;
 }
 
-.formatted-message :deep(pre code) {
-  @apply bg-transparent text-gray-100;
+.formatted-message h1 {
+  @apply text-3xl;
 }
 
-.formatted-message :deep(p) {
-  @apply my-2 text-gray-800;
+.formatted-message h2 {
+  @apply text-2xl;
 }
 
-.formatted-message :deep(ul),
-.formatted-message :deep(ol) {
-  @apply my-2 pl-6 text-gray-800;
+.formatted-message h3 {
+  @apply text-xl;
 }
 
-.formatted-message :deep(blockquote) {
-  @apply border-l-4 border-gray-200 pl-4 my-4 text-gray-600 bg-gray-50 py-2 rounded-r;
+.formatted-message p {
+  @apply mb-4 leading-7;
+}
+
+.formatted-message ul,
+.formatted-message ol {
+  @apply mb-6 pl-6 space-y-2 text-current;
+}
+
+.formatted-message ul {
+  @apply list-disc marker:text-blue-500;
+}
+
+.formatted-message ol {
+  @apply list-decimal marker:text-blue-500 marker:font-semibold;
+}
+
+.formatted-message li {
+  @apply mb-2 text-current;
 }
 
 .code-block-wrapper {
-  @apply relative my-4 rounded-xl overflow-hidden shadow-sm;
+  @apply bg-[#1a1b26] rounded-lg overflow-hidden shadow-lg;
 }
 
 .code-header {
-  @apply flex justify-between items-center bg-gray-800 px-4 py-2;
+  @apply flex items-center justify-between px-4 py-2 border-b border-gray-700/30 bg-gray-800/30;
 }
 
-.code-language {
-  @apply font-mono text-sm text-gray-300 lowercase;
+.language-label {
+  @apply text-xs text-gray-400 font-mono uppercase tracking-wider;
 }
 
 .copy-button {
-  @apply p-1.5 text-gray-300 hover:bg-gray-700 rounded-lg transition-colors;
+  @apply text-xs text-gray-400 hover:text-white flex items-center gap-1 px-2 py-1 rounded-md
+         opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all duration-200 active:scale-95;
 }
 
-.copy-icon,
-.check-icon {
-  @apply w-4 h-4;
+.code-block {
+  @apply overflow-x-auto bg-[#1a1b26];
+}
+
+.code-block code {
+  @apply block font-mono text-sm p-4 text-gray-300;
+}
+
+/* .formatted-message code:not(.hljs) {
+  @apply font-mono text-sm px-2 py-0.5 rounded-md bg-gray-100 text-gray-900 border border-gray-200;
+} */
+
+.formatted-message blockquote {
+  @apply pl-4 border-l-4 border-current bg-white/10 text-current p-6 rounded-r-xl my-6
+         shadow-sm relative overflow-hidden;
+}
+
+.formatted-message blockquote::before {
+  content: '"';
+  @apply absolute -top-2 left-4 text-6xl text-blue-200/50 font-serif;
+}
+.formatted-message a {
+  @apply text-blue-600 hover:text-blue-800 underline decoration-blue-300 underline-offset-2
+         transition-colors duration-200;
+}
+
+.formatted-message table {
+  @apply w-full border-collapse my-6 rounded-lg overflow-hidden shadow-sm;
+}
+
+.formatted-message th {
+  @apply bg-gray-50 text-left font-semibold text-gray-700 px-6 py-3 border-b-2 border-gray-200;
+}
+
+.formatted-message td {
+  @apply px-6 py-4 border-b border-gray-200 text-gray-600;
+}
+
+.formatted-message tr:hover td {
+  @apply bg-gray-50 transition-colors duration-150;
+}
+
+.hljs {
+  @apply !bg-transparent;
+}
+
+/* Task list styles */
+.task-list-item {
+  @apply list-none flex items-center gap-2 -ml-6;
+}
+
+.task-list-item-checkbox {
+  @apply w-4 h-4 rounded border-2 border-gray-300 checked:bg-blue-500 checked:border-blue-500
+         focus:ring-2 focus:ring-blue-500/20 transition-all duration-200;
+}
+
+/* Emoji styles */
+.emoji {
+  @apply inline-block align-middle text-xl;
+}
+
+/* Add a subtle hover effect to code blocks */
+.code-block-wrapper:hover {
+  @apply shadow-2xl shadow-gray-900/10;
+}
+
+/* Add syntax highlighting theme overrides */
+.hljs-keyword,
+.hljs-function {
+  @apply text-purple-400;
+}
+
+.hljs-string {
+  @apply text-green-400;
+}
+
+.hljs-comment {
+  @apply text-gray-500 italic;
+}
+
+.hljs-number {
+  @apply text-orange-400;
+}
+
+.hljs-operator {
+  @apply text-sky-400;
+}
+
+.hljs-punctuation {
+  @apply text-gray-400;
+}
+
+.hljs-property {
+  @apply text-blue-400;
+}
+
+.hljs-variable {
+  @apply text-rose-400;
+}
+
+/* Add specific color overrides for code blocks and other elements inside user messages */
+.formatted-message code:not(.hljs) {
+  @apply text-current;
+}
+
+.formatted-message ul,
+.formatted-message ol {
+  @apply mb-6 pl-6 space-y-2 text-current;
+}
+
+.formatted-message li {
+  @apply mb-2 text-current;
+}
+
+.formatted-message blockquote {
+  @apply pl-4 border-l-4 border-current bg-white/10 text-current p-6 rounded-r-xl my-6
+         shadow-sm relative overflow-hidden;
+}
+
+.formatted-message a {
+  @apply text-current hover:opacity-80 underline decoration-2 underline-offset-2 transition-colors duration-200;
 }
 </style>
