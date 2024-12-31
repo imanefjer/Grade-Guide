@@ -13,15 +13,35 @@
           </h1>
           <p class="text-gray-500">Get personalized help and explanations for any topic</p>
         </div>
-        <NuxtLink 
-          :to="subject ? `/subjects/${subject.id}` : '/subjects'"
-          class="flex items-center gap-2 px-5 py-2.5 text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-50 rounded-xl shadow-sm border border-gray-200 transition-all"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
-          </svg>
-          Back to Subject
-        </NuxtLink>
+        <div class="flex gap-4">
+          <NuxtLink 
+            :to="`/subjects/${route.params.subjectID}/quiz`"
+            class="flex items-center gap-2 px-5 py-2.5 text-white bg-indigo-500 hover:bg-indigo-600 rounded-xl shadow-sm transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Take Quiz
+          </NuxtLink>
+          <NuxtLink 
+            to="/zen"
+            class="flex items-center gap-2 px-5 py-2.5 text-white bg-purple-500 hover:bg-purple-600 rounded-xl shadow-sm transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+            Zen Mode
+          </NuxtLink>
+          <NuxtLink 
+            :to="`/subjects/${route.params.subjectID}`"
+            class="flex items-center gap-2 px-5 py-2.5 text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-50 rounded-xl shadow-sm border border-gray-200 transition-all"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+            </svg>
+            Back to Subject
+          </NuxtLink>
+        </div>
       </div>
       <TutorChatInterface :subject="subject" />
     </div>

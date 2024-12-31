@@ -4,9 +4,61 @@
       <div class="max-w-7xl mx-auto">
         
         <!-- Subject Header -->
-        <div class="bg-white shadow rounded-lg mb-6 p-6 flex flex-col items-center">
-            <h1 class="text-3xl font-bold text-gray-900">{{ subject?.name }}</h1>
-            <p class="mt-2 text-gray-600">{{ subject?.description }}</p>
+        <div class="bg-white shadow rounded-lg mb-6 p-6">
+            <div class="flex flex-col items-center mb-6">
+              <h1 class="text-3xl font-bold text-gray-900">{{ subject?.name }}</h1>
+              <p class="mt-2 text-gray-600">{{ subject?.description }}</p>
+            </div>
+
+            <div class="flex justify-center gap-4">
+              <NuxtLink
+                :to="`/subjects/${subjectId}/quiz`"
+                class="inline-flex items-center px-6 py-3 rounded-lg bg-indigo-500 text-white font-medium shadow-md hover:bg-indigo-600 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 group"
+              >
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  class="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Take Quiz
+              </NuxtLink>
+
+              <NuxtLink
+                :to="`/subjects/${subjectId}/tutor`"
+                class="inline-flex items-center px-6 py-3 rounded-lg bg-teal-500 text-white font-medium shadow-md hover:bg-teal-600 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 group"
+              >
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  class="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                Ask Tutor
+              </NuxtLink>
+
+              <NuxtLink
+                to="/zen"
+                class="inline-flex items-center px-6 py-3 rounded-lg bg-purple-500 text-white font-medium shadow-md hover:bg-purple-600 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 group"
+              >
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  class="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+                Zen Mode
+              </NuxtLink>
+            </div>
         </div>
   
         <!-- Progress Overview -->
@@ -71,44 +123,6 @@
               class="h-64"
             />
             <p v-else class="text-center text-gray-500 py-8">No level history available</p>
-          </div>
-        </div>
-  
-        <!-- Navigation Overlay -->
-        <div
-          class="fixed right-0 top-1/2 transform -translate-y-1/2 transition-transform duration-300"
-          :class="{ 'translate-x-0': showNav, 'translate-x-[calc(100%-8px)]': !showNav }"
-        >
-          <!-- Toggle Button -->
-          <button
-            @click="showNav = !showNav"
-            class="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 bg-blue-500 text-white p-2 rounded-l-lg shadow-lg"
-          >
-            <svg
-              class="w-6 h-6 transform transition-transform"
-              :class="{ 'rotate-180': showNav }"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-  
-          <!-- Navigation Menu -->
-          <div class="bg-white shadow-lg rounded-l-lg p-4 space-y-3">
-            <NuxtLink
-              :to="`/subjects/${subjectId}/quiz`"
-              class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-md transition-colors"
-            >
-              Take Quiz
-            </NuxtLink>
-            <NuxtLink
-              :to="`/subjects/${subjectId}/tutor`"
-              class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-md transition-colors"
-            >
-              Ask Tutor
-            </NuxtLink>
           </div>
         </div>
       </div>

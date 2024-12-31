@@ -16,15 +16,35 @@
           <span v-if="subject" class="text-gray-900"> - {{ subject.name }}</span>
           <span v-else class="text-gray-400">Loading...</span>
         </h1>
-        <NuxtLink 
-          :to="`/subjects/${route.params.subjectID}/tutor`" 
-          class="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
-          </svg>
-          Back to Tutor
-        </NuxtLink>
+        <div class="flex gap-4">
+          <NuxtLink 
+            :to="`/subjects/${route.params.subjectID}/tutor`" 
+            class="flex items-center gap-2 px-4 py-2 text-white bg-teal-500 hover:bg-teal-600 rounded-lg transition-colors shadow-sm"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            Ask Tutor
+          </NuxtLink>
+          <NuxtLink 
+            to="/zen" 
+            class="flex items-center gap-2 px-4 py-2 text-white bg-purple-500 hover:bg-purple-600 rounded-lg transition-colors shadow-sm"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+            Zen Mode
+          </NuxtLink>
+          <NuxtLink 
+            :to="`/subjects/${route.params.subjectID}`" 
+            class="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+            </svg>
+            Back to Subject
+          </NuxtLink>
+        </div>
       </div>
 
       <!-- Quiz Configuration -->
