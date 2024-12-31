@@ -119,7 +119,32 @@
             <h2 class="text-xl font-semibold mb-4">Level Progress</h2>
             <LineChart
               v-if="progress?.levelHistory?.length"
-              :data="progress.levelHistory"
+              :chartData="{
+                labels: progress.levelHistory.map(item => item.date),
+                datasets: [{
+                  label: 'Level Progress',
+                  data: progress.levelHistory.map(item => item.level),
+                  borderColor: '#2196F3',
+                  backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                  fill: true,
+                  tension: 0.4
+                }]
+              }"
+              :options="{
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    grid: {
+                      color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                  },
+                  x: {
+                    grid: {
+                      display: false
+                    }
+                  }
+                }
+              }"
               class="h-64"
             />
             <p v-else class="text-center text-gray-500 py-8">No level history available</p>

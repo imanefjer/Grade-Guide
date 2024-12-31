@@ -6,7 +6,7 @@
           <div class="flex items-center">
             <NuxtLink to="/" class="flex items-center">
               <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                StudyApp
+                Grade-Guide
               </span>
             </NuxtLink>
           </div>
@@ -14,29 +14,49 @@
           <div class="hidden sm:flex sm:items-center sm:space-x-8">
             <NuxtLink 
               to="/subjects" 
-              class="text-gray-600 hover:text-gray-900 font-medium transition-colors"
+              class="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
             >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
               Subjects
             </NuxtLink>
             <NuxtLink 
               to="/leaderboard" 
-              class="text-gray-600 hover:text-gray-900"
+              class="flex items-center gap-2 text-yellow-600 hover:text-yellow-800 transition-colors"
             >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
               Leaderboard
-            </NuxtLink> 
+            </NuxtLink>
             <NuxtLink 
               to="/dashboard" 
-              class="text-gray-600 hover:text-gray-900"
+              class="flex items-center gap-2 text-green-600 hover:text-green-800 transition-colors"
             >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
               Dashboard
             </NuxtLink>
             <NuxtLink 
               to="/calendar" 
-              class="text-gray-600 hover:text-gray-900"
+              class="flex items-center gap-2 text-red-600 hover:text-red-800 transition-colors"
             >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
               Calendar
             </NuxtLink>
-            
+            <NuxtLink 
+              to="/zen" 
+              class="flex items-center gap-2 text-purple-600 hover:text-purple-800 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+              Zen Mode
+            </NuxtLink>
           </div>
 
           <!-- Right side - User Menu -->
