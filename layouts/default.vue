@@ -99,11 +99,9 @@
 
 <script setup>
 import { useAuthStore } from '~/stores/authStore'
-import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
 
 const auth = useAuthStore()
-const router = useRouter()
 const isMenuOpen = ref(false)
 
 // Initialize auth store
@@ -125,7 +123,7 @@ const handleLogout = async () => {
   try {
     await auth.logout()
     isMenuOpen.value = false
-    router.push('/auth/login')
+    await auth.navigateAfterLogout()
   } catch (error) {
     console.error('Logout error:', error)
   }

@@ -164,25 +164,10 @@ const handleSubmit = async () => {
   try {
     loading.value = true
     error.value = ''
-    
-    let imageUrl = profileImageUrl.value
-
-    if (imageFile.value) {
-      // Upload new image if one was selected
-      imageUrl = await auth.uploadProfileImage(imageFile.value)
-    }
-    
-    await auth.updateProfile({
-      firstName: formData.value.firstName,
-      lastName: formData.value.lastName,
-      profileImageUrl: imageUrl
-    })
-    
-    profileImageUrl.value = imageUrl
+    await auth.updateProfile(formData.value)
     isEditing.value = false
   } catch (err) {
-    error.value = 'Failed to update profile. Please try again.'
-    console.error('Profile update error:', err)
+    error.value = auth.error || 'Failed to update profile'
   } finally {
     loading.value = false
   }

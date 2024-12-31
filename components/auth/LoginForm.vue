@@ -77,12 +77,9 @@
 <script setup>
 import { ref } from 'vue'
 import { useAuthStore } from '~/stores/authStore'
-import { useRouter } from 'vue-router'
 import GoogleSignInButton from './GoogleSignInButton.vue'
 
 const auth = useAuthStore()
-const router = useRouter()
-
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
@@ -93,7 +90,7 @@ const handleSubmit = async () => {
     loading.value = true
     formError.value = ''
     await auth.login(email.value, password.value)
-    router.push('/dashboard')
+    await auth.navigateAfterLogin()
   } catch (error) {
     formError.value = auth.error || 'An error occurred while signing in'
   } finally {

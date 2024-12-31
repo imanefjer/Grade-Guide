@@ -21,19 +21,27 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     async init() {
+      if (this.initializationPromise) {
+        return this.initializationPromise
+      }
+
       const { $auth } = useNuxtApp()
       
-      onAuthStateChanged($auth, async (user) => {
-        this.user = user
-        if (user) {
-          // Fetch the user profile whenever we have an authenticated user
-          await this.fetchUserProfile()
-        } else {
-          // Clear the profile when user logs out
-          this.userProfile = null
-        }
-        this.loading = false
+      this.initializationPromise = new Promise((resolve) => {
+        const unsubscribe = onAuthStateChanged($auth, async (user) => {
+          this.user = user
+          if (user) {
+            await this.fetchUserProfile().catch(console.error)
+          } else {
+            this.userProfile = null
+          }
+          this.loading = false
+          resolve()
+          unsubscribe() // Clean up listener after initial auth state is determined
+        })
       })
+
+      return this.initializationPromise
     },
 
     async signup({ email, password, firstName, lastName }) {
@@ -243,6 +251,14 @@ export const useAuthStore = defineStore('auth', {
         }
         throw error
       }
+    },
+
+    async navigateAfterLogin() {
+      await navigateTo('/dashboard', { replace: true })
+    },
+    
+    async navigateAfterLogout() {
+      await navigateTo('/auth/login', { replace: true })
     }
   },
 
@@ -256,4 +272,5 @@ export const useAuthStore = defineStore('auth', {
       return `${state.userProfile.firstName} ${state.userProfile.lastName}`.trim()
     }
   }
+
 }) 

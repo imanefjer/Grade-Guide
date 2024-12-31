@@ -31,17 +31,15 @@
 <script setup>
 import { ref } from 'vue'
 import { useAuthStore } from '~/stores/authStore'
-import { useRouter } from 'vue-router'
 
 const auth = useAuthStore()
-const router = useRouter()
 const loading = ref(false)
 
 const handleGoogleSignIn = async () => {
   try {
     loading.value = true
     await auth.signInWithGoogle()
-    router.push('/dashboard')
+    await auth.navigateAfterLogin()
   } catch (error) {
     // Error is already handled in the store
     console.error('Google sign-in error:', error)

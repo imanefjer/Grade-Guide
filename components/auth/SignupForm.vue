@@ -122,16 +122,15 @@ const handleSubmit = async () => {
   try {
     loading.value = true
     formError.value = ''
-    
     await auth.signup({
       email: email.value,
       password: password.value,
       firstName: firstName.value,
       lastName: lastName.value
     })
-
+    
     if (!auth.error) {
-      await router.push('/dashboard')
+      await auth.navigateAfterLogin()
     } else {
       formError.value = auth.error
     }

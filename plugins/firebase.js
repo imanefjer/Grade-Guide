@@ -1,10 +1,11 @@
+// plugins/firebase.js
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
-
+  
   const firebaseConfig = {
     apiKey: config.public.FIREBASE_API_KEY,
     authDomain: config.public.FIREBASE_AUTH_DOMAIN,
@@ -26,4 +27,4 @@ export default defineNuxtPlugin(() => {
       
     }
   }
-}) 
+})
