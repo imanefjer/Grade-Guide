@@ -296,4 +296,7 @@ const handleResetQuiz = () => {
 const toggleConfigCard = () => {
   showConfigCard.value = !showConfigCard.value
 }
+definePageMeta({
+  middleware: ['auth']
+})
 </script> 

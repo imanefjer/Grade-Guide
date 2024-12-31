@@ -221,13 +221,6 @@ const toggleActive = async (subjectId) => {
 
 // Wait for auth before fetching subjects
 onMounted(async () => {
-  const nuxtApp = useNuxtApp();
-  // Wait for a short time to ensure Firebase is initialized
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  if (nuxtApp.$auth?.currentUser) {
-    await store.fetchSubjects();
-  } else {
-    console.error("User not authenticated");
-  }
+  await store.fetchSubjects()
 });
 </script>
