@@ -30,7 +30,13 @@
             >
               Dashboard
             </NuxtLink>
-            <!-- Add more navigation links as needed -->
+            <NuxtLink 
+              to="/calendar" 
+              class="text-gray-600 hover:text-gray-900"
+            >
+              Calendar
+            </NuxtLink>
+            
           </div>
 
           <!-- Right side - User Menu -->
