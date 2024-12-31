@@ -8,7 +8,7 @@ import {
   signInWithPopup,
   sendPasswordResetEmail
 } from 'firebase/auth'
-import { doc, setDoc, getDoc, serverTimestamp, collection } from 'firebase/firestore'
+import { doc, setDoc, getDoc, serverTimestamp, collection, getFirestore } from 'firebase/firestore'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -268,6 +268,20 @@ export const useAuthStore = defineStore('auth', {
     
     async navigateAfterLogout() {
       await navigateTo('/auth/login', { replace: true })
+    },
+
+    async getUserData(userId) {
+      try {
+        const db = getFirestore()
+        const userDoc = await getDoc(doc(db, 'Users', userId))
+        if (userDoc.exists()) {
+          return userDoc.data()
+        }
+        return null
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+        return null
+      }
     }
   },
 
