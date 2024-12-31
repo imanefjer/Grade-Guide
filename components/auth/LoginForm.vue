@@ -90,7 +90,11 @@ const handleSubmit = async () => {
     loading.value = true
     formError.value = ''
     await auth.login(email.value, password.value)
-    await auth.navigateAfterLogin()
+    
+    // Get redirect path from query parameters or default to subjects
+    const route = useRoute()
+    const redirectPath = route.query.redirect || '/subjects'
+    await navigateTo(redirectPath)
   } catch (error) {
     formError.value = auth.error || 'An error occurred while signing in'
   } finally {
