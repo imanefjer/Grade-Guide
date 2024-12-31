@@ -361,7 +361,6 @@ const handleSubmit = async () => {
       createdAt: new Date()
     }
 
-    console.log('Creating event:', eventData)
 
     const eventsRef = collection($firestore, 'events')
     const docRef = await addDoc(eventsRef, eventData)
@@ -489,7 +488,6 @@ watch(() => currentDate.value, () => {
 async function fetchEvents() {
   try {
     if (!currentUser.value) {
-      console.log('No user logged in')
       return
     }
 
@@ -497,7 +495,6 @@ async function fetchEvents() {
     const startDate = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() - 1, 1)
     const endDate = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() + 2, 0, 23, 59, 59)
     
-    console.log('Fetching events between:', startDate, 'and', endDate)
     
     const eventsRef = collection($firestore, 'events')
     const q = query(
@@ -506,7 +503,6 @@ async function fetchEvents() {
     )
     
     const querySnapshot = await getDocs(q)
-    console.log('Found events:', querySnapshot.size)
     
     events.value = querySnapshot.docs.map(doc => {
       const data = doc.data()
@@ -524,7 +520,6 @@ async function fetchEvents() {
       return eventDate >= startDate && eventDate <= endDate
     })
 
-    console.log('Processed events:', events.value)
   } catch (error) {
     console.error('Error fetching events:', error)
     events.value = []

@@ -3,7 +3,7 @@ import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
-export default defineNuxtPlugin(() => {
+export default defineNuxtPlugin(async (nuxtApp) => {
   const config = useRuntimeConfig()
   
   const firebaseConfig = {
@@ -20,11 +20,18 @@ export default defineNuxtPlugin(() => {
   const auth = getAuth(app)
   const firestore = getFirestore(app)
 
+  // Wait for auth to initialize
+  await new Promise((resolve) => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      unsubscribe()
+      resolve(user)
+    })
+  })
+
   return {
     provide: {
       auth,
-      firestore,
-      
+      firestore
     }
   }
 })

@@ -15,8 +15,8 @@ export const useAuthStore = defineStore('auth', {
     user: null,
     loading: true,
     error: null,
-    userProfile: null
-    
+    userProfile: null,
+    isInitialized: false
   }),
 
   actions: {
@@ -25,10 +25,18 @@ export const useAuthStore = defineStore('auth', {
         return this.initializationPromise
       }
 
-      const { $auth } = useNuxtApp()
+      const nuxtApp = useNuxtApp()
       
+      // Wait for Firebase plugin to be ready
+      if (!nuxtApp.$auth || !nuxtApp.$firestore) {
+        await new Promise(resolve => setTimeout(resolve, 100))
+        if (!nuxtApp.$auth || !nuxtApp.$firestore) {
+          throw new Error('Firebase services not initialized')
+        }
+      }
+
       this.initializationPromise = new Promise((resolve) => {
-        const unsubscribe = onAuthStateChanged($auth, async (user) => {
+        const unsubscribe = onAuthStateChanged(nuxtApp.$auth, async (user) => {
           this.user = user
           if (user) {
             await this.fetchUserProfile().catch(console.error)
@@ -36,8 +44,9 @@ export const useAuthStore = defineStore('auth', {
             this.userProfile = null
           }
           this.loading = false
+          this.isInitialized = true
           resolve()
-          unsubscribe() // Clean up listener after initial auth state is determined
+          unsubscribe()
         })
       })
 
@@ -254,7 +263,7 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async navigateAfterLogin() {
-      await navigateTo('/dashboard', { replace: true })
+      await navigateTo('/subjects', { replace: true })
     },
     
     async navigateAfterLogout() {
@@ -272,5 +281,4 @@ export const useAuthStore = defineStore('auth', {
       return `${state.userProfile.firstName} ${state.userProfile.lastName}`.trim()
     }
   }
-
 }) 
