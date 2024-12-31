@@ -13,13 +13,13 @@
           <p class="text-gray-500">Get personalized help and explanations for any topic</p>
         </div>
         <NuxtLink 
-          to="/subjects" 
+          :to="`/subjects/${subjectID}`"
           class="flex items-center gap-2 px-5 py-2.5 text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-50 rounded-xl shadow-sm border border-gray-200 transition-all"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
           </svg>
-          Back to Subjects
+          Back to Subject
         </NuxtLink>
       </div>
       <TutorChatInterface />
