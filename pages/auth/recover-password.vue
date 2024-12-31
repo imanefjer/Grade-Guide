@@ -3,21 +3,17 @@
     <div class="max-w-md w-full space-y-8">
       <div>
         <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Sign in to your account
+          Recover your password
         </h2>
         <p class="mt-2 text-center text-sm text-gray-600">
-          Or
-          <NuxtLink to="/auth/signup" class="font-medium text-indigo-600 hover:text-indigo-500">
-            create a new account
-          </NuxtLink>
+          Enter your email address and we'll send you a link to reset your password.
         </p>
       </div>
-      <LoginForm />
+      <PasswordRecoveryForm />
     </div>
   </div>
 </template>
 
 <script setup>
-import LoginForm from '~/components/auth/LoginForm.vue'
-
-</script>
+import PasswordRecoveryForm from '~/components/auth/PasswordRecoveryForm.vue'
+</script> 

@@ -8,12 +8,13 @@
               AI Tutor
             </span>
             <span class="text-gray-900">·</span>
-            <span class="text-gray-900">{{ subject }}</span>
+            <span v-if="subject" class="text-gray-900">{{ subject.name }}</span>
+            <span v-else class="text-gray-400">Loading...</span>
           </h1>
           <p class="text-gray-500">Get personalized help and explanations for any topic</p>
         </div>
         <NuxtLink 
-          :to="`/subjects/${subjectID}`"
+          :to="subject ? `/subjects/${subject.id}` : '/subjects'"
           class="flex items-center gap-2 px-5 py-2.5 text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-50 rounded-xl shadow-sm border border-gray-200 transition-all"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -22,19 +23,30 @@
           Back to Subject
         </NuxtLink>
       </div>
-      <TutorChatInterface />
+      <TutorChatInterface :subject="subject" />
     </div>
   </div>
 </template>
 
 <script setup>
-const route = useRoute()
-const subject = ref('')
+import { ref, onMounted } from 'vue';
+import { doc, getDoc } from 'firebase/firestore';
 
-// You can fetch subject details here using the ID
-const subjectID = route.params.subjectID
-// TODO: Replace with actual subject data fetch
-subject.value = `Subject ${subjectID}`
+const route = useRoute();
+const { $firestore } = useNuxtApp();
+
+const subject = ref(null);
+
+onMounted(async () => {
+  try {
+    const subjectDoc = await getDoc(doc($firestore, 'subjects', route.params.subjectID));
+    if (subjectDoc.exists()) {
+      subject.value = { id: subjectDoc.id, ...subjectDoc.data() };
+    }
+  } catch (error) {
+    console.error('Error fetching subject:', error);
+  }
+});
 </script>
 
 <style scoped>

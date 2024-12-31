@@ -13,7 +13,8 @@
           <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Quiz Generator
           </span>
-          <span class="text-gray-900"> - {{ subject }}</span>
+          <span v-if="subject" class="text-gray-900"> - {{ subject.name }}</span>
+          <span v-else class="text-gray-400">Loading...</span>
         </h1>
         <NuxtLink 
           :to="`/subjects/${route.params.subjectID}/tutor`" 
@@ -192,26 +193,34 @@
 
 <script setup>
 import { useQuizStore } from '~/stores/quiz';
+import { doc, getDoc } from 'firebase/firestore';
 
-const route = useRoute()
-const quizStore = useQuizStore()
+const route = useRoute();
+const { $firestore } = useNuxtApp();
+const quizStore = useQuizStore();
 
-const subject = ref('')
-const customPrompt = ref('')
-const questionCount = ref('10')
-const difficulty = ref('medium')
-const isLoading = ref(false)
-const selectedFiles = ref([])
-const shouldClearFiles = ref(false)
-const showConfigCard = ref(!quizStore.quiz)
+const subject = ref(null);
+const customPrompt = ref('');
+const questionCount = ref('10');
+const difficulty = ref('medium');
+const isLoading = ref(false);
+const selectedFiles = ref([]);
+const shouldClearFiles = ref(false);
+const showConfigCard = ref(!quizStore.quiz);
 
-// Initialize subject name
-subject.value = `Subject ${route.params.subjectID}`
-
-// Load saved state on component mount
-onMounted(() => {
-  quizStore.loadState(route.params.subjectID)
-})
+// Fetch subject data
+onMounted(async () => {
+  try {
+    const subjectDoc = await getDoc(doc($firestore, 'subjects', route.params.subjectID));
+    if (subjectDoc.exists()) {
+      subject.value = { id: subjectDoc.id, ...subjectDoc.data() };
+    }
+  } catch (error) {
+    console.error('Error fetching subject:', error);
+  }
+  
+  quizStore.loadState(route.params.subjectID);
+});
 
 const handleFiles = (files) => {
   selectedFiles.value = files
@@ -227,7 +236,7 @@ const generateQuiz = async () => {
 
   try {
     const formData = new FormData()
-    formData.append('subject', route.params.subjectID)
+    formData.append('subject', JSON.stringify(subject.value))
     formData.append('questionCount', questionCount.value)
     formData.append('difficulty', difficulty.value)
     formData.append('customPrompt', customPrompt.value)
@@ -287,4 +296,7 @@ const handleResetQuiz = () => {
 const toggleConfigCard = () => {
   showConfigCard.value = !showConfigCard.value
 }
+definePageMeta({
+  middleware: ['auth']
+})
 </script> 

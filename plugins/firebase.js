@@ -23,7 +23,8 @@ export default defineNuxtPlugin(() => {
   return {
     provide: {
       auth,
-      firestore
+      firestore,
+      
     }
   }
 })

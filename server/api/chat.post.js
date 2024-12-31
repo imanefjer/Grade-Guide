@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
 
         const message = fields.message?.[0];
         const messages = JSON.parse(fields.messages?.[0] || '[]');
-        const subject = fields.subject?.[0];
+        const subject = JSON.parse(fields.subject?.[0] || '{}');
 
         if (!message && (!files.files || files.files.length === 0)) {
             throw new H3Error("No message or files provided in form data.");
@@ -32,7 +32,8 @@ export default defineEventHandler(async (event) => {
 
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-1.5-pro-latest',
-            systemInstruction: 'You are an AI tutor specialized in helping students understand and learn academic subjects. Provide clear explanations, examples, and support to make complex topics easier to grasp.'  
+            systemInstruction: `You are an AI tutor specialized in ${subject.name}. Your subject description is: ${subject.description || ''} 
+            Provide clear explanations, examples, and support to make complex topics easier to grasp.`
         });
 
         const initialMessage = [
@@ -42,7 +43,7 @@ export default defineEventHandler(async (event) => {
             },
             {
                 role: 'model',
-                parts: [{ text: 'Hello! I\'m your AI tutor. How can I help you today?' }]
+                parts: [{ text: `Hello! I'm your AI tutor specialized in ${subject.name}. How can I help you today?` }]
             },
             ...messages.map(msg => ({
                 role: msg.role === 'model' ? 'model' : 'user',

@@ -138,17 +138,16 @@
   onMounted(async () => {
     try {
       // Fetch subject data
-      console.log(subjectId);
       const subjectDoc = await getDoc(doc($firestore, 'subjects', subjectId))
       if (subjectDoc.exists()) {
         subject.value = { id: subjectDoc.id, ...subjectDoc.data() }
       }
   
-    //   // Fetch progress data
-    //   const progressDoc = await getDoc(doc($firestore, 'progress', subjectId))
-    //   if (progressDoc.exists()) {
-    //     progress.value = progressDoc.data()
-    //   }
+      // Fetch progress data
+      const progressDoc = await getDoc(doc($firestore, 'progress', subjectId))
+      if (progressDoc.exists()) {
+        progress.value = progressDoc.data()
+      }
     } catch (error) {
       console.error('Error fetching subject data:', error)
     }
