@@ -18,8 +18,8 @@ export const useQuizStore = defineStore('quiz', {
     isAnswered: false,
     score: 0,
     subjectId: null,
-    userAnswers: [],
-    isComplete: false
+    isComplete: false,
+    userAnswers: []
   }),
 
   getters: {
@@ -121,13 +121,15 @@ export const useQuizStore = defineStore('quiz', {
       const savedState = localStorage.getItem(`quiz_state_${subjectId}`)
       if (savedState) {
         const state = JSON.parse(savedState)
-        if (state.subjectId === subjectId) {
+        if (state.subjectId === subjectId && !state.isComplete) {
           this.quiz = state.quiz
           this.currentQuestionIndex = state.currentQuestionIndex
           this.selectedAnswer = state.selectedAnswer
           this.isAnswered = state.isAnswered
           this.score = state.score
           this.subjectId = state.subjectId
+          this.isComplete = state.isComplete
+          this.userAnswers = state.userAnswers || []
           return true
         }
       }
@@ -144,8 +146,11 @@ export const useQuizStore = defineStore('quiz', {
     finishQuiz() {
       this.calculateScore()
       this.isComplete = true
-      this.saveState()
       this.saveProgress()
+      // Clear the saved state when quiz is completed
+      if (this.subjectId) {
+        localStorage.removeItem(`quiz_state_${this.subjectId}`)
+      }
     },
 
     async saveProgress() {
@@ -288,6 +293,17 @@ export const useQuizStore = defineStore('quiz', {
       }
 
       return newAchievements
+    },
+
+    $reset() {
+      this.quiz = null
+      this.currentQuestionIndex = 0
+      this.selectedAnswer = null
+      this.isAnswered = false
+      this.score = 0
+      this.subjectId = null
+      this.isComplete = false
+      this.userAnswers = []
     }
   }
 }) 
