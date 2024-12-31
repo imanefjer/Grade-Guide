@@ -134,6 +134,13 @@
 </template>
 
 <script setup>
+const props = defineProps({
+  subject: {
+    type: Object,
+    required: true
+  }
+})
+
 const messages = ref([{
   role: 'model',
   content: 'Hello! I\'m your AI tutor. How can I help you today?'
@@ -163,10 +170,10 @@ const sendMessage = async () => {
     const formData = new FormData()
     formData.append('message', userInput.value.trim())
     formData.append('messages', JSON.stringify(messages.value))
+    formData.append('subject', JSON.stringify(props.subject))
     selectedFiles.value.forEach(file => {
       formData.append('files', file)
     })
-    formData.append('subject', route.params.subjectID)
 
     const userMessage = {
       role: 'user',
