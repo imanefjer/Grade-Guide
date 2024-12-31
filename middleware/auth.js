@@ -1,14 +1,30 @@
-export default defineNuxtRouteMiddleware((to, from) => {
+export default defineNuxtRouteMiddleware(async (to) => {
   const auth = useAuthStore()
   
-  // Public routes that don't require authentication
-  const publicRoutes = ['/auth/login', '/auth/signup', '/']
+  // Define routes that should be accessible only to non-authenticated users
+  const authRoutes = ['/auth/login', '/auth/signup', '/auth/recover-password']
   
-  if (!auth.isAuthenticated && !publicRoutes.includes(to.path)) {
-    return navigateTo('/auth/login')
+  // If auth is still loading, wait for it
+  if (auth.loading) {
+    await new Promise(resolve => {
+      const unwatch = watch(() => auth.loading, (newValue) => {
+        if (!newValue) {
+          unwatch()
+          resolve()
+        }
+      }, { immediate: true })
+    })
   }
-  
-  if (auth.isAuthenticated && (to.path === '/auth/login' || to.path === '/auth/signup')) {
+
+  // After auth is loaded, handle routing
+  if (auth.isAuthenticated && authRoutes.includes(to.path)) {
+    console.log('Authenticated user trying to access auth route, redirecting to dashboard')
     return navigateTo('/dashboard')
+  }
+
+  // Handle non-authenticated users trying to access protected routes
+  if (!auth.isAuthenticated && !authRoutes.includes(to.path) && to.path !== '/') {
+    console.log('Non-authenticated user trying to access protected route, redirecting to login')
+    return navigateTo('/auth/login')
   }
 }) 

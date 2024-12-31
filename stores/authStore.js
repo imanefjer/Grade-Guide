@@ -16,6 +16,7 @@ export const useAuthStore = defineStore('auth', {
     loading: true,
     error: null,
     userProfile: null
+    
   }),
 
   actions: {
@@ -180,12 +181,27 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async signInWithGoogle() {
-      const { $auth } = useNuxtApp()
+      const { $auth, $firestore } = useNuxtApp()
       try {
         this.error = null
         const provider = new GoogleAuthProvider()
         const result = await signInWithPopup($auth, provider)
+        
+        // Get user info from Google
+        const firstName = result.user.displayName?.split(' ')[0] || ''
+        const lastName = result.user.displayName?.split(' ').slice(1).join(' ') || ''
+        
+        // Create/update user document in Firestore
+        const userDocRef = doc($firestore, 'users', result.user.uid)
+        await setDoc(userDocRef, {
+          email: result.user.email,
+          firstName,
+          lastName,
+          createdAt: serverTimestamp()
+        }, { merge: true })
+
         this.user = result.user
+        this.userProfile = { firstName, lastName, email: result.user.email }
         return result
       } catch (error) {
         switch (error.code) {

@@ -27,7 +27,6 @@ export default defineNuxtConfig({
   },
   plugins: [
     '~/plugins/firebase.js',
-    '~/plugins/auth.js'
   ],
   router: {
     middleware: ['auth']
